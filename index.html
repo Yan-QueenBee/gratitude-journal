@@ -538,12 +538,13 @@ body{
   @media(prefers-color-scheme:dark){
     .sidebar{background:rgba(20,14,24,0.6)}
   }
-  .sidebar-title{font-size:1.05rem}
+  .sidebar-title{font-size:1.05rem;flex:0 0 auto}
   .stats{flex:0 0 auto}
   .stat-value{font-size:1.25rem}
-  .calendar{flex:1;min-width:200px}
-  .cal-day-pill{width:32px;height:32px;font-size:0.75rem}
+  .calendar{flex:1 1 100%;min-width:0;min-height:52px}
+  .cal-day-pill{width:34px;height:34px;font-size:0.78rem}
   .cal-grid-day{font-size:0.68rem}
+  .bg-orb{filter:blur(50px);opacity:0.35}
   .header{padding:18px 18px 0}
   .header-left h1{font-size:1.4rem}
   .main{padding:14px 18px 32px;gap:16px}
@@ -562,8 +563,8 @@ body{
   .stat{padding:2px 8px}
   .stat-value{font-size:1.05rem}
   .stat-label{font-size:0.52rem}
-  .calendar{min-width:160px}
-  .cal-day-pill{width:28px;height:28px;font-size:0.7rem}
+  .calendar{flex:1 1 100%;min-width:0;min-height:48px}
+  .cal-day-pill{width:30px;height:30px;font-size:0.72rem}
   .cal-toggle{width:22px;height:22px;font-size:0.6rem}
   .cal-grid-day{font-size:0.65rem}
   .header{padding:12px 14px 0;gap:8px}
