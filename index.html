@@ -1016,14 +1016,11 @@ function wrapText(ctx, text, x, y, maxW, lineH){
   if(line.length > 0) ctx.fillText(line, x, y);
 }
 
-// ===== Cloud Sync (GitHub Repo) =====
-var SYNC_REPO = 'Yan-QueenBee/gratitude-journal';
-var SYNC_FILE = 'data.json';
-
+// ===== Cloud Sync (Private GitHub Gist) =====
 function getSyncToken(){
   var t = localStorage.getItem('gj_sync_token');
   if(!t){
-    t = prompt('输入 GitHub Token（repo 权限）：');
+    t = prompt('输入 GitHub Token（需要 gist 权限）：\n\n去 github.com/settings/tokens → 点你的 token → 勾选 gist → Update token');
     if(!t) return null;
     t = t.trim();
     localStorage.setItem('gj_sync_token', t);
@@ -1032,17 +1029,8 @@ function getSyncToken(){
 }
 
 function toBase64(str){
-  try {
-    // Modern browsers
-    var bytes = new TextEncoder().encode(str);
-    var bin = '';
-    for(var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    return btoa(bin);
-  } catch(e){
-    // Fallback
-    var u = unescape(encodeURIComponent(str));
-    return btoa(u);
-  }
+  try { var bytes = new TextEncoder().encode(str); var bin = ''; for(var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]); return btoa(bin); }
+  catch(e){ return btoa(unescape(encodeURIComponent(str))); }
 }
 
 function cloudSync(){
@@ -1053,34 +1041,32 @@ function cloudSync(){
   var data = {};
   Object.keys(entries).sort().forEach(function(k){ if(hasEntry(k)) data[k] = entries[k]; });
   var json = JSON.stringify(data, null, 2);
-  var content64 = toBase64(json);
 
-  // Get SHA first, then update
-  fetch('https://api.github.com/repos/' + SYNC_REPO + '/contents/' + SYNC_FILE, {
-    headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
-  }).then(function(r){
-    if(!r.ok && r.status !== 404) throw new Error('HTTP ' + r.status);
-    return r.status === 404 ? null : r.json();
-  }).then(function(existing){
-    var body = { message: 'Update journal data', content: content64, branch: 'main' };
-    if(existing && existing.sha) body.sha = existing.sha;
-    return fetch('https://api.github.com/repos/' + SYNC_REPO + '/contents/' + SYNC_FILE, {
-      method: 'PUT',
-      headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+  var gistId = localStorage.getItem('gj_gist_id');
+
+  var req = gistId
+    ? { method: 'PATCH', url: 'https://api.github.com/gists/' + gistId, body: JSON.stringify({files:{'journal.json':{content:json}}}) }
+    : { method: 'POST', url: 'https://api.github.com/gists', body: JSON.stringify({description:'感恩日记',public:false,files:{'journal.json':{content:json}}}) };
+
+  fetch(req.url, {
+    method: req.method,
+    headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
+    body: req.body
   }).then(function(r){
     if(!r.ok) return r.json().then(function(d){ throw new Error('HTTP ' + r.status + ': ' + (d.message || '')); });
-    return r.json().then(function(d){ return {ok: true, data: d}; });
-  }).then(function(result){
-    if(result.data.content){
-      showToast('✓ 同步成功');
-    } else {
-      showToast('同步失败: ' + (result.data.message || '未知'));
+    return r.json();
+  }).then(function(d){
+    if(d.id){
+      localStorage.setItem('gj_gist_id', d.id);
+      showToast('✓ 同步成功（私密）');
     }
   }).catch(function(e){
     var msg = e.message || '';
-    if(msg.indexOf('401') >= 0 || msg.indexOf('Bad credentials') >= 0){
+    if(msg.indexOf('404') >= 0 && localStorage.getItem('gj_gist_id')){
+      // Gist may have been deleted, create a new one next time
+      localStorage.removeItem('gj_gist_id');
+      showToast('Gist 丢失，请重新同步');
+    } else if(msg.indexOf('401') >= 0 || msg.indexOf('Bad credentials') >= 0){
       localStorage.removeItem('gj_sync_token');
       showToast('Token 无效，请重试');
     } else {
@@ -1092,15 +1078,24 @@ function cloudSync(){
 function cloudLoad(){
   var token = getSyncToken();
   if(!token) return;
+  var gistId = localStorage.getItem('gj_gist_id');
+  if(!gistId){ showToast('请先同步一次'); return; }
   showToast('☁️ 加载中…');
-  fetch('https://raw.githubusercontent.com/' + SYNC_REPO + '/main/' + SYNC_FILE + '?t=' + Date.now())
-  .then(function(r){ if(!r.ok) throw new Error('No data'); return r.json(); })
-  .then(function(data){
-    if(!data || Object.keys(data).length === 0){ showToast('云端暂无数据'); return; }
-    var count = 0;
-    Object.keys(data).forEach(function(k){ if(data[k] && data[k].items){ entries[k] = data[k]; count++; } });
-    saveEntries(); renderAll(); showToast('✓ 已加载 ' + count + ' 条记录');
-  }).catch(function(){ showToast('没有云端数据，请先同步一次'); });
+
+  fetch('https://api.github.com/gists/' + gistId, {
+    headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(d){
+    if(d.files && d.files['journal.json']){
+      var data = JSON.parse(d.files['journal.json'].content);
+      if(!data || Object.keys(data).length === 0){ showToast('云端暂无数据'); return; }
+      var count = 0;
+      Object.keys(data).forEach(function(k){ if(data[k] && data[k].items){ entries[k] = data[k]; count++; } });
+      saveEntries(); renderAll(); showToast('✓ 已加载 ' + count + ' 条');
+    }
+  }).catch(function(){ showToast('加载失败，请检查网络'); });
 }
 
 // ===== Toast =====
