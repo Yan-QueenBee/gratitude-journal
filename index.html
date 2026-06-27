@@ -635,7 +635,9 @@ body{
       <p class="subtitle" id="todayDateLabel"></p>
     </div>
     <div class="header-actions">
-      <button class="btn" id="exportJsonBtn">↗ 导出</button>
+      <button class="btn" id="exportImgBtn">🖼 图片</button>
+      <button class="btn" id="exportJsonBtn">📥 JSON</button>
+      <button class="btn" id="syncBtn">☁️ 同步</button>
     </div>
   </header>
 
@@ -915,7 +917,157 @@ function exportJSON(){
   a.download = 'gratitude-' + getTodayStr() + '.json';
   a.click();
   URL.revokeObjectURL(a.href);
-  showToast('✓ 导出成功');
+  showToast('✓ JSON 导出成功');
+}
+
+// ===== Export Image =====
+function exportImage(){
+  var entry = getEntry(currentViewDate);
+  if(!entry || !entry.items.some(function(s){ return s.trim(); })){
+    showToast('今天还没有记录'); return;
+  }
+
+  var items = entry.items.filter(function(s){ return s.trim(); });
+  var moodEmoji = { grateful:'🙏', happy:'😊', peaceful:'😌', loved:'💖', hopeful:'🌟' }[entry.mood]||'🙏';
+
+  var W = 750, H = 1000, P = 50;
+  var canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  // Background gradient
+  var bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#fefaf6'); bg.addColorStop(1, '#f8f0e8');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  // Decorative circles
+  ctx.globalAlpha = 0.25;
+  ['#f0d0c0','#d0e0d0','#d0d8f0','#e8d0f0'].forEach(function(c, i){
+    ctx.fillStyle = c; ctx.beginPath();
+    ctx.arc(100+i*180, 150+i*80, 100+i*30, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Card
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  roundRect(ctx, P, P+40, W-P*2, H-P*2-40, 24); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 1;
+  roundRect(ctx, P, P+40, W-P*2, H-P*2-40, 24); ctx.stroke();
+
+  // Title
+  ctx.fillStyle = '#c87a2e'; ctx.font = 'bold 32px Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('感恩日记', W/2, P+100);
+
+  // Date
+  ctx.fillStyle = '#6b5744'; ctx.font = '20px -apple-system, sans-serif';
+  ctx.fillText(formatDate(currentViewDate), W/2, P+140);
+
+  // Line
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(P+40, P+170); ctx.lineTo(W-P-40, P+170); ctx.stroke();
+
+  // Mood
+  ctx.font = '48px sans-serif'; ctx.fillText(moodEmoji, W/2, P+230);
+
+  // Items
+  ctx.textAlign = 'left';
+  var y = P + 290;
+  for(var i = 0; i < items.length; i++){
+    ctx.fillStyle = '#c87a2e'; ctx.font = 'bold 18px Georgia, serif';
+    ctx.fillText((i+1) + '.', P+40, y);
+    ctx.fillStyle = '#3d2a1a'; ctx.font = '18px -apple-system, sans-serif';
+    wrapText(ctx, items[i], P+70, y, W-P*2-110, 32);
+    y += Math.max(40, Math.ceil(items[i].length / 18) * 32 + 16);
+  }
+
+  // Footer
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#9e8b78'; ctx.font = '14px -apple-system, sans-serif';
+  ctx.fillText('每天记录三件感恩的事', W/2, H-P-30);
+
+  // Download
+  canvas.toBlob(function(blob){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = '感恩日记_' + currentViewDate + '.png'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('✓ 图片已保存');
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+function wrapText(ctx, text, x, y, maxW, lineH){
+  var words = text.split(''); var line = '';
+  for(var n = 0; n < words.length; n++){
+    var tl = line + words[n];
+    if(ctx.measureText(tl).width > maxW && line.length > 0){
+      ctx.fillText(line, x, y); line = words[n]; y += lineH;
+    } else { line = tl; }
+  }
+  if(line.length > 0) ctx.fillText(line, x, y);
+}
+
+// ===== Cloud Sync (GitHub Gist) =====
+function cloudSync(){
+  var token = localStorage.getItem('gj_sync_token');
+  if(!token){
+    token = prompt('首次同步需要 GitHub Token（需要 gist 权限）：\n\n去 github.com/settings/tokens 创建，勾选 gist 即可');
+    if(!token) return;
+    localStorage.setItem('gj_sync_token', token);
+  }
+
+  var data = {};
+  Object.keys(entries).sort().forEach(function(k){ if(hasEntry(k)) data[k] = entries[k]; });
+  var json = JSON.stringify(data);
+  var gistId = localStorage.getItem('gj_gist_id');
+
+  showToast('☁️ 同步中…');
+
+  var req = gistId
+    ? { method: 'PATCH', url: 'https://api.github.com/gists/' + gistId, body: JSON.stringify({files:{'gratitude-journal.json':{content:json}}}) }
+    : { method: 'POST', url: 'https://api.github.com/gists', body: JSON.stringify({description:'感恩日记数据',public:false,files:{'gratitude-journal.json':{content:json}}}) };
+
+  fetch(req.url, {
+    method: req.method,
+    headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
+    body: req.body
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(d.id){
+      localStorage.setItem('gj_gist_id', d.id);
+      showToast('✓ 同步成功');
+    } else if(d.message){
+      if(d.message.indexOf('Bad credentials') >= 0){ localStorage.removeItem('gj_sync_token'); showToast('Token 无效，请重试'); }
+      else showToast('同步失败: ' + d.message);
+    }
+  }).catch(function(){ showToast('网络错误，同步失败'); });
+}
+
+function cloudLoad(){
+  var token = localStorage.getItem('gj_sync_token');
+  var gistId = localStorage.getItem('gj_gist_id');
+  if(!token || !gistId){ showToast('请先同步一次'); return; }
+
+  showToast('☁️ 加载中…');
+  fetch('https://api.github.com/gists/' + gistId, {
+    headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(d.files && d.files['gratitude-journal.json']){
+      var data = JSON.parse(d.files['gratitude-journal.json'].content);
+      Object.keys(data).forEach(function(k){ entries[k] = data[k]; });
+      saveEntries(); renderAll(); showToast('✓ 云端数据已加载');
+    } else {
+      showToast('加载失败');
+    }
+  }).catch(function(){ showToast('网络错误'); });
 }
 
 // ===== Toast =====
@@ -1043,6 +1195,11 @@ function init(){
   document.getElementById('editorCard').addEventListener('click', handleEditorClick);
 
   document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
+  document.getElementById('exportImgBtn').addEventListener('click', exportImage);
+  document.getElementById('syncBtn').addEventListener('click', cloudSync);
+
+  // Long-press sync button to load from cloud
+  document.getElementById('syncBtn').addEventListener('contextmenu', function(e){ e.preventDefault(); cloudLoad(); });
 
   // Calendar swipe (touch)
   var cal = document.getElementById('calendar');
