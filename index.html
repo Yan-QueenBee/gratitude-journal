@@ -1025,6 +1025,7 @@ function getSyncToken(){
   if(!t){
     t = prompt('输入 GitHub Token（repo 权限）：');
     if(!t) return null;
+    t = t.trim();
     localStorage.setItem('gj_sync_token', t);
   }
   return t;
@@ -1069,21 +1070,22 @@ function cloudSync(){
       body: JSON.stringify(body)
     });
   }).then(function(r){
-    return r.json().then(function(d){ return {ok: r.ok, data: d}; });
+    if(!r.ok) return r.json().then(function(d){ throw new Error('HTTP ' + r.status + ': ' + (d.message || '')); });
+    return r.json().then(function(d){ return {ok: true, data: d}; });
   }).then(function(result){
-    if(result.ok && result.data.content){
+    if(result.data.content){
       showToast('✓ 同步成功');
     } else {
-      var msg = result.data.message || '未知错误';
-      if(msg.indexOf('Bad credentials') >= 0 || msg.indexOf('401') >= 0){
-        localStorage.removeItem('gj_sync_token');
-        showToast('Token 无效，请重试');
-      } else {
-        showToast('同步失败: ' + msg);
-      }
+      showToast('同步失败: ' + (result.data.message || '未知'));
     }
   }).catch(function(e){
-    showToast('网络错误: ' + (e.message || ''));
+    var msg = e.message || '';
+    if(msg.indexOf('401') >= 0 || msg.indexOf('Bad credentials') >= 0){
+      localStorage.removeItem('gj_sync_token');
+      showToast('Token 无效，请重试');
+    } else {
+      showToast('同步失败: ' + msg);
+    }
   });
 }
 
