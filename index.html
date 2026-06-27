@@ -1056,7 +1056,7 @@ function cloudSync(){
 
   // Get SHA first, then update
   fetch('https://api.github.com/repos/' + SYNC_REPO + '/contents/' + SYNC_FILE, {
-    headers: { 'Authorization': 'token ' + token }
+    headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
   }).then(function(r){
     if(!r.ok && r.status !== 404) throw new Error('HTTP ' + r.status);
     return r.status === 404 ? null : r.json();
