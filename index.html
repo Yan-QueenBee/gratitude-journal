@@ -199,7 +199,7 @@ body{
 
 .sidebar-title{
   font-family:var(--font-serif);
-  font-size:1.3rem;
+  font-size:1.1rem;
   font-weight:600;
   color:var(--accent);
   text-align:center;
@@ -288,10 +288,10 @@ body{
 }
 .header-left h1{
   font-family:var(--font-serif);
-  font-size:1.8rem;font-weight:500;color:var(--text);
+  font-size:1.4rem;font-weight:500;color:var(--text);
   letter-spacing:0.02em;
 }
-.header-left .subtitle{font-size:0.82rem;color:var(--text-soft);margin-top:4px;font-weight:500}
+.header-left .subtitle{font-size:0.75rem;color:var(--text-soft);margin-top:2px;font-weight:500}
 .header-actions{display:flex;gap:8px}
 
 /* ===== Buttons ===== */
@@ -352,10 +352,10 @@ body{
   margin-bottom:20px;flex-wrap:wrap;gap:8px;
 }
 .card-title{
-  font-family:var(--font-serif);font-size:1.15rem;
+  font-family:var(--font-serif);font-size:1rem;
   color:var(--text);font-weight:600;
 }
-.card-date{font-size:0.78rem;color:var(--text-muted);font-weight:500}
+.card-date{font-size:0.72rem;color:var(--text-muted);font-weight:500}
 
 /* Entry Items */
 .entry-items{display:flex;flex-direction:column;gap:2px;margin-bottom:18px}
@@ -371,13 +371,13 @@ body{
 }
 .entry-number{
   font-family:var(--font-serif);color:var(--accent);
-  font-weight:700;font-size:0.9rem;min-width:22px;padding-top:14px;
+  font-weight:700;font-size:0.78rem;min-width:20px;padding-top:12px;
 }
 .entry-item textarea{
   flex:1;border:none;resize:none;overflow:hidden;
   border-bottom:2px solid rgba(0,0,0,0.06);
-  background:transparent;padding:14px 4px;
-  font-size:16px;font-family:var(--font-sans);color:var(--text);
+  background:transparent;padding:10px 4px;
+  font-size:14px;font-family:var(--font-sans);color:var(--text);
   outline:none;transition:all 0.3s var(--ease-out);
   min-height:var(--touch-target);line-height:1.5;field-sizing:content;
 }
@@ -385,9 +385,9 @@ body{
   border-bottom-color:transparent;
   box-shadow:0 4px 20px -2px var(--accent-glow);
   background:var(--accent-bg);
-  border-radius:8px;padding:12px 8px;
+  border-radius:8px;padding:10px 8px;
 }
-.entry-item textarea::placeholder{color:var(--text-muted);opacity:0.6;font-size:15px}
+.entry-item textarea::placeholder{color:var(--text-muted);opacity:0.6;font-size:13px}
 .entry-item textarea:focus::placeholder{opacity:0.35}
 .entry-remove{
   background:none;border:none;color:var(--text-muted);
@@ -428,7 +428,7 @@ body{
 
 /* ===== Past Entries ===== */
 .section-title{
-  font-family:var(--font-serif);font-size:1.05rem;
+  font-family:var(--font-serif);font-size:0.9rem;
   color:var(--text-soft);margin-bottom:4px;font-weight:600;
 }
 .entry-list{display:flex;flex-direction:column;gap:10px}
@@ -447,8 +447,8 @@ body{
 .entry-card:hover{transform:translateY(-2px);box-shadow:var(--glass-shadow);border-color:var(--glass-border-hover)}
 .entry-card:active{transform:scale(0.98);transition:transform 0.1s var(--ease-out)}
 .entry-card-info{flex:1;min-width:0}
-.entry-card-date{font-size:0.76rem;color:var(--text-muted);font-weight:500}
-.entry-card-preview{font-size:0.85rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry-card-date{font-size:0.7rem;color:var(--text-muted);font-weight:500}
+.entry-card-preview{font-size:0.78rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .entry-card-mood{font-size:1.4rem;flex-shrink:0;transition:transform 0.3s var(--ease-spring)}
 .entry-card:hover .entry-card-mood{transform:scale(1.2)}
 .entry-card-delete{
@@ -546,7 +546,7 @@ body{
   .cal-grid-day{font-size:0.68rem}
   .bg-orb{filter:blur(50px);opacity:0.35}
   .header{padding:18px 18px 0}
-  .header-left h1{font-size:1.4rem}
+  .header-left h1{font-size:1.2rem}
   .main{padding:14px 18px 32px;gap:16px}
   .card{padding:20px 16px}
   /* Touch: always show delete */
@@ -568,13 +568,13 @@ body{
   .cal-toggle{width:22px;height:22px;font-size:0.6rem}
   .cal-grid-day{font-size:0.65rem}
   .header{padding:12px 14px 0;gap:8px}
-  .header-left h1{font-size:1.25rem}
+  .header-left h1{font-size:1.1rem}
   .main{padding:10px 14px 24px;gap:12px}
   .card{padding:14px 10px}
   .card-header{flex-direction:column;align-items:flex-start;margin-bottom:12px;gap:2px}
-  .card-title{font-size:0.95rem}
-  .card-date{font-size:0.7rem}
-  .entry-item textarea{font-size:16px;padding:10px 2px}
+  .card-title{font-size:0.88rem}
+  .card-date{font-size:0.65rem}
+  .entry-item textarea{font-size:14px;padding:8px 2px}
   .entry-card{padding:14px 16px;gap:8px}
   .entry-card-preview{font-size:0.8rem}
   .btn{padding:8px 14px;font-size:0.74rem}
@@ -955,35 +955,35 @@ function exportImage(){
   roundRect(ctx, P, P+40, W-P*2, H-P*2-40, 24); ctx.stroke();
 
   // Title
-  ctx.fillStyle = '#c87a2e'; ctx.font = 'bold 32px Georgia, serif';
+  ctx.fillStyle = '#c87a2e'; ctx.font = 'bold 26px Georgia, serif';
   ctx.textAlign = 'center';
-  ctx.fillText('感恩日记', W/2, P+100);
+  ctx.fillText('感恩日记', W/2, P+90);
 
   // Date
-  ctx.fillStyle = '#6b5744'; ctx.font = '20px -apple-system, sans-serif';
-  ctx.fillText(formatDate(currentViewDate), W/2, P+140);
+  ctx.fillStyle = '#6b5744'; ctx.font = '16px -apple-system, sans-serif';
+  ctx.fillText(formatDate(currentViewDate), W/2, P+125);
 
   // Line
   ctx.strokeStyle = 'rgba(0,0,0,0.08)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(P+40, P+170); ctx.lineTo(W-P-40, P+170); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(P+40, P+150); ctx.lineTo(W-P-40, P+150); ctx.stroke();
 
   // Mood
-  ctx.font = '48px sans-serif'; ctx.fillText(moodEmoji, W/2, P+230);
+  ctx.font = '40px sans-serif'; ctx.fillText(moodEmoji, W/2, P+200);
 
   // Items
   ctx.textAlign = 'left';
-  var y = P + 290;
+  var y = P + 250;
   for(var i = 0; i < items.length; i++){
-    ctx.fillStyle = '#c87a2e'; ctx.font = 'bold 18px Georgia, serif';
+    ctx.fillStyle = '#c87a2e'; ctx.font = 'bold 15px Georgia, serif';
     ctx.fillText((i+1) + '.', P+40, y);
-    ctx.fillStyle = '#3d2a1a'; ctx.font = '18px -apple-system, sans-serif';
-    wrapText(ctx, items[i], P+70, y, W-P*2-110, 32);
-    y += Math.max(40, Math.ceil(items[i].length / 18) * 32 + 16);
+    ctx.fillStyle = '#3d2a1a'; ctx.font = '15px -apple-system, sans-serif';
+    wrapText(ctx, items[i], P+65, y, W-P*2-100, 28);
+    y += Math.max(32, Math.ceil(items[i].length / 20) * 28 + 12);
   }
 
   // Footer
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#9e8b78'; ctx.font = '14px -apple-system, sans-serif';
+  ctx.fillStyle = '#9e8b78'; ctx.font = '12px -apple-system, sans-serif';
   ctx.fillText('每天记录三件感恩的事', W/2, H-P-30);
 
   // Download
